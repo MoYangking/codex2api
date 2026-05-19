@@ -136,6 +136,7 @@ ENV CODEX_BIND=127.0.0.1 \
     DATABASE_PATH=/data/codex2api.db \
     CACHE_DRIVER=memory \
     IMAGE_ASSET_DIR=/data/images \
+    BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0 \
     LOG_DIR=/home/user/logs/codex2api \
     BACKUP_DIR=/home/user/backups/codex2api \
     BACKUP_INTERVAL=3600 \

@@ -7,6 +7,7 @@ export DATABASE_DRIVER="${DATABASE_DRIVER:-sqlite}"
 export DATABASE_PATH="${DATABASE_PATH:-/data/codex2api.db}"
 export CACHE_DRIVER="${CACHE_DRIVER:-memory}"
 export IMAGE_ASSET_DIR="${IMAGE_ASSET_DIR:-/data/images}"
+export BOOTSTRAP_ALLOWED_CIDR="${BOOTSTRAP_ALLOWED_CIDR:-0.0.0.0/0,::/0}"
 export LOG_DIR="${LOG_DIR:-/home/user/logs/codex2api}"
 export BACKUP_DIR="${BACKUP_DIR:-/home/user/backups/codex2api}"
 

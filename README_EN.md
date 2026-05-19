@@ -63,6 +63,10 @@ Default sync targets:
 
 If GitHub sync is not configured, Codex2API starts immediately.
 
+## Bootstrap Access
+
+Codex2API checks the client IP during first-time bootstrap. Because this image sits behind OpenResty, it defaults `BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0` so initialization can be completed through the public domain. After bootstrap, you can override it with a narrower IP/CIDR range.
+
 ## Local Docker
 
 ```bash

@@ -75,6 +75,7 @@ GIT_BRANCH=main
 | `CODEX_BIND` | `127.0.0.1` | Codex2API 内部监听地址 |
 | `CODEX_PORT` | `8001` | Codex2API 内部端口 |
 | `ADMIN_SECRET` | 空 | Codex2API 管理后台密钥；为空时按上游首次初始化流程设置 |
+| `BOOTSTRAP_ALLOWED_CIDR` | `0.0.0.0/0,::/0` | 首次初始化允许的客户端网段；初始化完成后可覆盖为你的出口 IP/CIDR |
 | `CODEX_API_KEYS` | 空 | 对外 API Key，逗号分隔 |
 | `DATABASE_DRIVER` | `sqlite` | 数据库驱动 |
 | `DATABASE_PATH` | `/data/codex2api.db` | SQLite 文件路径 |
@@ -116,6 +117,8 @@ docker run -d \
 ```
 
 访问 `http://localhost:7860/admin/` 进入 Codex2API 管理后台。
+
+首次初始化依赖 Codex2API 的来源 IP 校验。由于服务前面有 OpenResty 反代，镜像默认设置 `BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0`，确保公网域名也能完成第一次初始化；完成后可以在运行参数里覆盖为更窄的网段。
 
 ## 备份恢复
 
