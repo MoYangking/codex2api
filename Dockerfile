@@ -60,10 +60,11 @@ RUN set -eux; \
     curl -fL --retry 3 --retry-delay 1 -o /tmp/codex2api.tar.gz "${asset_url}"; \
     curl -fL --retry 3 --retry-delay 1 -o /tmp/SHA256SUMS.txt "${sums_url}"; \
     grep "  ${asset_name}$" /tmp/SHA256SUMS.txt | sed "s#  ${asset_name}#  /tmp/codex2api.tar.gz#" | sha256sum -c -; \
-    tar -xzf /tmp/codex2api.tar.gz -C /tmp codex2api; \
-    install -m 0755 /tmp/codex2api /home/user/codex2api; \
+    mkdir -p /tmp/codex2api-release; \
+    tar -xzf /tmp/codex2api.tar.gz -C /tmp/codex2api-release; \
+    install -m 0755 /tmp/codex2api-release/codex2api /home/user/codex2api; \
     chown 1000:1000 /home/user/codex2api; \
-    rm -f /tmp/codex2api /tmp/codex2api.tar.gz /tmp/SHA256SUMS.txt
+    rm -rf /tmp/codex2api-release /tmp/codex2api.tar.gz /tmp/SHA256SUMS.txt
 
 # Download and install FileBrowser.
 RUN set -eux; \
@@ -140,8 +141,7 @@ ENV CODEX_BIND=127.0.0.1 \
     LOG_DIR=/home/user/logs/codex2api \
     BACKUP_DIR=/home/user/backups/codex2api \
     BACKUP_INTERVAL=3600 \
-    BACKUP_RETENTION_DAYS=14 \
-    ROUTE_ADMIN_TOKEN=""
+    BACKUP_RETENTION_DAYS=14
 
 EXPOSE 7860
 

@@ -79,6 +79,14 @@ class SyncDaemon:
                 self._lfs_api = None
                 self._lfs_manifest = None
 
+    def fix_runtime_permissions(self) -> None:
+        """Allow non-root supervisor programs to write synced runtime data."""
+        for path in ("/home/user", "/data"):
+            try:
+                subprocess.run(["chmod", "-R", "777", path], check=False)
+            except Exception as e:
+                err(f"Failed to fix permissions for {path}: {e}")
+
     # -------- 核心阶段：准备远端并对齐 HEAD --------
     def _remote_url(self) -> str:
         return f"https://x-access-token:{self.st.github_pat}@github.com/{self.st.github_repo}.git"
@@ -108,12 +116,9 @@ class SyncDaemon:
                 else:
                     git_ops.fetch_and_checkout(self.st.hist_dir, self.st.branch)
                 
-                # 修正文件权限：将 /home/user/ 下所有文件设为 777
+                # 修正文件权限：确保非 root 进程可访问运行数据
                 log("修正文件权限...")
-                try:
-                    subprocess.run(["chmod", "-R", "777", "/home/user"], check=False)
-                except Exception as e:
-                    err(f"修正权限失败: {e}")
+                self.fix_runtime_permissions()
 
                 # 校验 HEAD 对齐远端
                 if self._head_matches_origin():
@@ -292,10 +297,7 @@ class SyncDaemon:
             git_ops.run(["git", "pull", "--rebase", "origin", self.st.branch], cwd=self.st.hist_dir, check=False)
             
             # 修正文件权限：确保所有文件都可被非 root 进程访问
-            try:
-                subprocess.run(["chmod", "-R", "777", "/home/user"], check=False)
-            except Exception as e:
-                err(f"修正权限失败: {e}")
+            self.fix_runtime_permissions()
             
             # 2. 立即恢复 LFS 文件（防止 pull 删除大文件）
             if self.st.lfs_enabled and self._lfs_api and self._lfs_manifest:
@@ -377,6 +379,7 @@ class SyncDaemon:
         log("Stage 2/4: Creating symlinks and tracking empty dirs...")
         self.write_progress({"stage": "linking", "progress": 30})
         self.link_and_track()
+        self.fix_runtime_permissions()
         self.write_progress({"stage": "linking", "progress": 50})
         
         # 3) 恢复 LFS 文件
@@ -385,6 +388,7 @@ class SyncDaemon:
         
         # 4) 标记同步完成
         log("Stage 4/4: Finalizing...")
+        self.fix_runtime_permissions()
         self.mark_sync_complete()
         
         # 5) 进入周期同步循环
