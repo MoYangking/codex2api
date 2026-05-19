@@ -3,7 +3,7 @@
 This image wires [james-6-23/codex2api](https://github.com/james-6-23/codex2api) into the existing single-container, single-public-port layout. `supervisord` runs the internal services, while OpenResty exposes only port `7860`.
 
 Components:
-- Codex2API on `127.0.0.1:8080`
+- Codex2API on `127.0.0.1:8001`
 - OpenResty gateway on public port `7860`
 - Optional GitHub Sync at `/sync/`
 - Periodic SQLite backups under `/home/user/backups/codex2api/`

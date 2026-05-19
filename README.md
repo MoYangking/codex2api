@@ -3,7 +3,7 @@
 这个镜像把 [james-6-23/codex2api](https://github.com/james-6-23/codex2api) 接入到原有的单容器、单端口结构中：容器内用 `supervisord` 管理多个辅助进程，对外只暴露 `7860`，由 OpenResty 统一反代。
 
 当前组件：
-- Codex2API：OpenAI / Anthropic 兼容 API 与内置管理后台，内部监听 `127.0.0.1:8080`
+- Codex2API：OpenAI / Anthropic 兼容 API 与内置管理后台，内部监听 `127.0.0.1:8001`
 - OpenResty 网关：对外端口 `7860`
 - Sync：可选的 GitHub 持久化同步服务，入口 `/sync/`
 - SQLite 备份：定时把 `/data/codex2api.db` 备份到 `/home/user/backups/codex2api/`
@@ -75,7 +75,7 @@ GIT_BRANCH=main
 | 名称 | 默认值 | 说明 |
 | --- | --- | --- |
 | `CODEX_BIND` | `127.0.0.1` | Codex2API 内部监听地址 |
-| `CODEX_PORT` | `8080` | Codex2API 内部端口 |
+| `CODEX_PORT` | `8001` | Codex2API 内部端口 |
 | `ADMIN_SECRET` | 空 | Codex2API 管理后台密钥；为空时按上游首次初始化流程设置 |
 | `CODEX_API_KEYS` | 空 | 对外 API Key，逗号分隔 |
 | `DATABASE_DRIVER` | `sqlite` | 数据库驱动 |

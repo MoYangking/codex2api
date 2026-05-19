@@ -2,7 +2,7 @@
 set -euo pipefail
 
 export CODEX_BIND="${CODEX_BIND:-127.0.0.1}"
-export CODEX_PORT="${CODEX_PORT:-8080}"
+export CODEX_PORT="${CODEX_PORT:-8001}"
 export DATABASE_DRIVER="${DATABASE_DRIVER:-sqlite}"
 export DATABASE_PATH="${DATABASE_PATH:-/data/codex2api.db}"
 export CACHE_DRIVER="${CACHE_DRIVER:-memory}"

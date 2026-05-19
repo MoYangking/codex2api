@@ -411,7 +411,7 @@
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="后端地址" v-if="editingRule.action === 'proxy'">
-                            <el-input v-model="editingRule.backend" placeholder="http://127.0.0.1:8080"></el-input>
+                            <el-input v-model="editingRule.backend" placeholder="http://127.0.0.1:8001"></el-input>
                         </el-form-item>
                         <template v-if="editingRule.action === 'redirect'">
                             <el-form-item label="重定向目标">

@@ -133,7 +133,7 @@ COPY --chown=1000:1000 scripts/wait-for-sync.sh /home/user/scripts/wait-for-sync
 RUN sed -i 's/\r$//' /home/user/scripts/*.sh && chmod +x /home/user/scripts/*.sh
 
 ENV CODEX_BIND=127.0.0.1 \
-    CODEX_PORT=8080 \
+    CODEX_PORT=8001 \
     DATABASE_DRIVER=sqlite \
     DATABASE_PATH=/data/codex2api.db \
     CACHE_DRIVER=memory \
