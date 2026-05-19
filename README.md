@@ -124,10 +124,10 @@ docker run -d \
 手动触发一次备份：
 
 ```bash
-docker exec codex2api-gateway /home/user/scripts/backup-sqlite.sh
+docker exec -e BACKUP_INTERVAL=0 codex2api-gateway /home/user/scripts/backup-sqlite.sh
 ```
 
-手动恢复最新备份：
+手动恢复最新备份时请先停止 Codex2API 进程，避免覆盖正在写入的 SQLite 文件：
 
 ```bash
 docker exec -e RESTORE_SQLITE_ON_START=always codex2api-gateway /home/user/scripts/restore-sqlite-backup.sh

@@ -13,7 +13,7 @@ log() {
 backup_once() {
   if [ ! -s "${DATABASE_PATH}" ]; then
     log "database not ready: ${DATABASE_PATH}"
-    return 0
+    return 1
   fi
 
   mkdir -p "${BACKUP_DIR}"
@@ -41,6 +41,12 @@ if [ "${BACKUP_INTERVAL}" = "0" ]; then
 fi
 
 while true; do
+  if [ ! -s "${DATABASE_PATH}" ]; then
+    log "database not ready: ${DATABASE_PATH}"
+    sleep 30
+    continue
+  fi
+
   backup_once || true
   sleep "${BACKUP_INTERVAL}"
 done

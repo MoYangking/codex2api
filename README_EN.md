@@ -81,10 +81,10 @@ Open `http://localhost:7860/admin/`.
 Manual backup:
 
 ```bash
-docker exec codex2api-gateway /home/user/scripts/backup-sqlite.sh
+docker exec -e BACKUP_INTERVAL=0 codex2api-gateway /home/user/scripts/backup-sqlite.sh
 ```
 
-Manual restore:
+Manual restore should be run only after stopping Codex2API, so the live SQLite file is not overwritten while it is being written:
 
 ```bash
 docker exec -e RESTORE_SQLITE_ON_START=always codex2api-gateway /home/user/scripts/restore-sqlite-backup.sh
