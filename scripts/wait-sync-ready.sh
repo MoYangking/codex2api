@@ -8,7 +8,6 @@ BRANCH="${GIT_BRANCH:-main}"
 DEFAULT_TARGETS=(
   home/user/backups/codex2api/
   data/images/
-  home/user/nginx/admin_config.json
   home/user/filebrowser-data/filebrowser.db
 )
 

@@ -28,8 +28,7 @@ DEFAULT_TARGETS = (
                 # Codex2API SQLite backup snapshots and image assets
                 "home/user/backups/codex2api/",
                 "data/images/",
-                # Gateway and helper service state
-                "home/user/nginx/admin_config.json",
+                # Helper service state
                 "home/user/filebrowser-data/filebrowser.db",
             ]
         ),

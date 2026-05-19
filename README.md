@@ -9,9 +9,9 @@
 - SQLite 备份：定时把 `/data/codex2api.db` 备份到 `/home/user/backups/codex2api/`
 - FileBrowser：入口 `/filebrowser/`
 - GoTTY：入口 `/t/`
-- 路由管理 UI：入口 `/admin/ui/`
 
 已移除旧的 Xvfb、NapCat、sin-proxy、MaiBot、MaiBot Adapter 相关构建、脚本和 supervisor 进程。
+网关现在使用原生 nginx `location`，不再使用 JSON 动态路由配置。
 
 ## 路径
 
@@ -19,7 +19,6 @@
 - `/admin/`：Codex2API 管理后台
 - `/health`：Codex2API 健康检查
 - `/v1/`：兼容 OpenAI 的 API
-- `/admin/ui/`：OpenResty 动态路由管理，默认密码 `admin`
 - `/sync/`：GitHub 同步管理页面
 - `/filebrowser/`：文件管理
 - `/t/`：Web 终端，默认账号 `admin`，密码 `adminadminadmin`
@@ -65,7 +64,6 @@ GIT_BRANCH=main
 默认同步目标：
 - `home/user/backups/codex2api/`
 - `data/images/`
-- `home/user/nginx/admin_config.json`
 - `home/user/filebrowser-data/filebrowser.db`
 
 没有配置 `GITHUB_REPO` / `GITHUB_PAT` 时，Sync 会自动空跑，Codex2API 不会等待同步。
@@ -140,8 +138,12 @@ docker exec -e RESTORE_SQLITE_ON_START=always codex2api-gateway /home/user/scrip
 如果页面返回 `400 Bad Request: Request Header Or Cookie Too Large`，镜像已在 OpenResty 中提高请求头缓冲：
 
 ```nginx
-client_header_buffer_size 32k;
-large_client_header_buffers 8 128k;
+client_header_buffer_size 128k;
+large_client_header_buffers 16 512k;
 ```
 
 重新构建并启动新镜像后生效。如果浏览器仍报错，清理该域名下的旧 Cookie 后再访问。
+
+如果 `/t/` 提示“重定向次数过多”，原因通常是旧路由里存在 `/t -> /t/`，而 GoTTY 自身又把路径规范化回 `/t`。当前配置已经改为原生 nginx 代理 `/t` 与 `/t/`，不会再读取旧 JSON 路由。
+
+`/filebrowser/` 出现同类重定向循环时也一样：当前配置参考 `jihuang` 的处理方式，`/filebrowser` 会直接代理到后端 `/filebrowser/`，避免外部 301 循环。

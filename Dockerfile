@@ -112,8 +112,6 @@ RUN mkdir -p /home/user/logs /home/user/backups/codex2api /data/images && \
 COPY --chown=1000:1000 supervisor/supervisord.conf /home/user/supervisord.conf
 RUN mkdir -p /home/user/nginx && chown -R 1000:1000 /home/user/nginx
 COPY --chown=1000:1000 nginx/nginx.conf /home/user/nginx/nginx.conf
-COPY --chown=1000:1000 nginx/default_admin_config.json /home/user/nginx/default_admin_config.json
-COPY --chown=1000:1000 nginx/route-admin /home/user/nginx/route-admin
 RUN mkdir -p \
       /home/user/nginx/tmp/body \
       /home/user/nginx/tmp/proxy \

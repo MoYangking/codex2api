@@ -9,16 +9,15 @@ Components:
 - Periodic SQLite backups under `/home/user/backups/codex2api/`
 - FileBrowser at `/filebrowser/`
 - GoTTY at `/t/`
-- Route admin UI at `/admin/ui/`
 
 The old Xvfb, NapCat, sin-proxy, MaiBot, and MaiBot Adapter build and runtime paths have been removed.
+The gateway now uses native nginx `location` rules and no longer uses JSON dynamic routing.
 
 ## Routes
 
 - `/admin/`: Codex2API dashboard
 - `/health`: Codex2API health check
 - `/v1/`: OpenAI-compatible API
-- `/admin/ui/`: OpenResty route admin, default password `admin`
 - `/sync/`: GitHub Sync UI
 - `/filebrowser/`: file manager
 - `/t/`: web terminal, default `admin` / `adminadminadmin`
@@ -60,7 +59,6 @@ GIT_BRANCH=main
 Default sync targets:
 - `home/user/backups/codex2api/`
 - `data/images/`
-- `home/user/nginx/admin_config.json`
 - `home/user/filebrowser-data/filebrowser.db`
 
 If GitHub sync is not configured, Codex2API starts immediately.
@@ -95,8 +93,12 @@ docker exec -e RESTORE_SQLITE_ON_START=always codex2api-gateway /home/user/scrip
 For `400 Bad Request: Request Header Or Cookie Too Large`, OpenResty is configured with larger request header buffers:
 
 ```nginx
-client_header_buffer_size 32k;
-large_client_header_buffers 8 128k;
+client_header_buffer_size 128k;
+large_client_header_buffers 16 512k;
 ```
 
 Rebuild and restart the image. If the browser still fails, clear old cookies for the domain and try again.
+
+If `/t/` reports too many redirects, an old route may still redirect `/t` to `/t/` while GoTTY normalizes back to `/t`. The current native nginx config proxies both `/t` and `/t/` directly and no longer reads JSON route rules.
+
+The same fix is applied to `/filebrowser/`: following the `jihuang` pattern, `/filebrowser` proxies directly to upstream `/filebrowser/` to avoid external 301 loops.
