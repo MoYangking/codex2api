@@ -134,3 +134,14 @@ docker exec -e RESTORE_SQLITE_ON_START=always codex2api-gateway /home/user/scrip
 ```
 
 生产场景建议同时挂载 `/data` 或配置 GitHub Sync。GitHub Sync 负责把备份快照和图片资产带走，SQLite 运行库仍通过定时 `.backup` 生成一致快照。
+
+## 常见问题
+
+如果页面返回 `400 Bad Request: Request Header Or Cookie Too Large`，镜像已在 OpenResty 中提高请求头缓冲：
+
+```nginx
+client_header_buffer_size 32k;
+large_client_header_buffers 8 128k;
+```
+
+重新构建并启动新镜像后生效。如果浏览器仍报错，清理该域名下的旧 Cookie 后再访问。

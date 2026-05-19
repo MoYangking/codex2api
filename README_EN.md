@@ -89,3 +89,14 @@ Manual restore should be run only after stopping Codex2API, so the live SQLite f
 ```bash
 docker exec -e RESTORE_SQLITE_ON_START=always codex2api-gateway /home/user/scripts/restore-sqlite-backup.sh
 ```
+
+## Troubleshooting
+
+For `400 Bad Request: Request Header Or Cookie Too Large`, OpenResty is configured with larger request header buffers:
+
+```nginx
+client_header_buffer_size 32k;
+large_client_header_buffers 8 128k;
+```
+
+Rebuild and restart the image. If the browser still fails, clear old cookies for the domain and try again.
