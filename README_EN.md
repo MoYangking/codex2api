@@ -67,6 +67,22 @@ If GitHub sync is not configured, Codex2API starts immediately.
 
 Codex2API checks the client IP during first-time bootstrap. Because this image sits behind OpenResty, it defaults `BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0` so initialization can be completed through the public domain. After bootstrap, you can override it with a narrower IP/CIDR range.
 
+If the hosting platform reserves the standard `Authorization` header, send `Codex-Authorization` or `X-Codex-Authorization` instead. OpenResty rewrites it back to standard `Authorization` before proxying to Codex2API, and the custom header takes precedence over a platform-provided `Authorization`.
+
+```bash
+curl https://<your-domain>/v1/models \
+  -H "Codex-Authorization: Bearer <your API key>"
+```
+
+If a client cannot customize request headers and only supports an OpenAI-compatible `base_url`, put the API key in the `/ak/<key>/v1` path:
+
+```text
+base_url = https://<your-domain>/ak/<your API key>/v1
+api_key = dummy
+```
+
+nginx rewrites `/ak/<key>/v1/chat/completions` to upstream `/v1/chat/completions` and injects `Authorization: Bearer <key>`. Access logs redact `/ak/<key>` as `/ak/<redacted>`.
+
 ## Local Docker
 
 ```bash
@@ -106,3 +122,7 @@ Rebuild and restart the image. If the browser still fails, clear old cookies for
 If `/t/` reports too many redirects, an old route may still redirect `/t` to `/t/` while GoTTY normalizes back to `/t`. The current native nginx config proxies both `/t` and `/t/` directly and no longer reads JSON route rules.
 
 The same fix is applied to `/filebrowser/`: following the `jihuang` pattern, `/filebrowser` proxies directly to upstream `/filebrowser/` to avoid external 301 loops.
+
+If ModelScope reserves `Authorization`, `X-modelscope-*`, or `X-studio-*`, use `Codex-Authorization: Bearer <key>` for API calls. nginx forwards only the rewritten standard `Authorization` header to Codex2API.
+
+For clients that cannot change headers, use the path form: `https://<your-domain>/ak/<key>/v1`.

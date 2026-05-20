@@ -120,6 +120,22 @@ docker run -d \
 
 首次初始化依赖 Codex2API 的来源 IP 校验。由于服务前面有 OpenResty 反代，镜像默认设置 `BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0`，确保公网域名也能完成第一次初始化；完成后可以在运行参数里覆盖为更窄的网段。
 
+如果部署平台占用了标准 `Authorization` 请求头，可以改用 `Codex-Authorization` 或 `X-Codex-Authorization`。OpenResty 会在转发给 Codex2API 前把它还原成标准 `Authorization`，并且自定义头优先级高于平台传入的 `Authorization`。
+
+```bash
+curl https://<你的域名>/v1/models \
+  -H "Codex-Authorization: Bearer <你的 API Key>"
+```
+
+如果客户端不能改请求头，只能配置 OpenAI 兼容的 `base_url`，可以把 API Key 放到 `/ak/<key>/v1` 路径里：
+
+```text
+base_url = https://<你的域名>/ak/<你的 API Key>/v1
+api_key = dummy
+```
+
+nginx 会把 `/ak/<key>/v1/chat/completions` 转发成后端的 `/v1/chat/completions`，并自动补上 `Authorization: Bearer <key>`。访问日志会把 `/ak/<key>` 脱敏成 `/ak/<redacted>`。
+
 ## 备份恢复
 
 手动触发一次备份：
@@ -150,3 +166,7 @@ large_client_header_buffers 16 512k;
 如果 `/t/` 提示“重定向次数过多”，原因通常是旧路由里存在 `/t -> /t/`，而 GoTTY 自身又把路径规范化回 `/t`。当前配置已经改为原生 nginx 代理 `/t` 与 `/t/`，不会再读取旧 JSON 路由。
 
 `/filebrowser/` 出现同类重定向循环时也一样：当前配置参考 `jihuang` 的处理方式，`/filebrowser` 会直接代理到后端 `/filebrowser/`，避免外部 301 循环。
+
+如果魔搭平台提示 `Authorization`、`X-modelscope-*`、`X-studio-*` 等请求头已被占用，请不要使用这些头传 API Key；改用 `Codex-Authorization: Bearer <key>`。nginx 会只把转换后的标准 `Authorization` 传给 Codex2API。
+
+不方便改请求头的客户端可以改用路径形式：`https://<你的域名>/ak/<key>/v1`。
