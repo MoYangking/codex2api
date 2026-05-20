@@ -85,6 +85,8 @@ GIT_BRANCH=main
 | `BACKUP_RETENTION_DAYS` | `14` | 历史备份保留天数 |
 | `GOTTY_USERNAME` | `admin` | `/t/` 登录用户名 |
 | `GOTTY_PASSWORD` | `adminadminadmin` | `/t/` 登录密码 |
+| `CLOUDFLARE_TUNNEL_TOKEN` | 空 | Cloudflare Tunnel token；设置后自动执行 `cloudflared service install` 并启动隧道 |
+| `CLOUDFLARE_QUICK_TUNNEL` | `0` | 设置为 `1` 时启动临时 trycloudflare 隧道 |
 
 ## 本地运行
 
@@ -120,27 +122,37 @@ docker run -d \
 
 首次初始化依赖 Codex2API 的来源 IP 校验。由于服务前面有 OpenResty 反代，镜像默认设置 `BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0`，确保公网域名也能完成第一次初始化；完成后可以在运行参数里覆盖为更窄的网段。
 
-如果部署平台占用了标准 `Authorization` 请求头，可以改用 `Codex-Authorization` 或 `X-Codex-Authorization`。OpenResty 会在转发给 Codex2API 前把它还原成标准 `Authorization`，并且自定义头优先级高于平台传入的 `Authorization`。
+## Cloudflare Tunnel
+
+镜像通过 Cloudflare 官方 apt 源安装 `cloudflared`。如果使用 Cloudflare Tunnel，就可以绕过会占用 `Authorization` 的平台前置代理，客户端恢复标准 OpenAI 配置：
+
+```text
+base_url = https://<你的域名>/v1
+api_key = <你的 API Key>
+```
+
+在 Cloudflare Zero Trust 中创建 Tunnel，并把 Public Hostname 的 Service 指向：
+
+```text
+http://localhost:7860
+```
+
+然后启动容器时传入 token。容器启动后会读取 `CLOUDFLARE_TUNNEL_TOKEN`，执行等价于 `cloudflared service install "$CLOUDFLARE_TUNNEL_TOKEN"` 的初始化，并由 supervisor 托管前台隧道进程：
 
 ```bash
-curl https://<你的域名>/v1/models \
-  -H "Codex-Authorization: Bearer <你的 API Key>"
+docker run -d \
+  -e CLOUDFLARE_TUNNEL_TOKEN="<cloudflare tunnel token>" \
+  --name codex2api-gateway \
+  codex2api-gateway:latest
 ```
 
-如果客户端不能改请求头，只能配置 OpenAI 兼容的 `base_url`，可以把 API Key 放到 `/ak/<key>/v1` 路径里：
+如果只想临时测试，也可以启用 trycloudflare 随机域名：
 
 ```text
-base_url = https://<你的域名>/ak/<你的 API Key>/v1
-api_key = dummy
+CLOUDFLARE_QUICK_TUNNEL=1
 ```
 
-nginx 会把 `/ak/<key>/v1/chat/completions` 转发成后端的 `/v1/chat/completions`，并自动补上 `Authorization: Bearer <key>`。访问日志会把 `/ak/<key>` 脱敏成 `/ak/<redacted>`。
-
-Responses API 也走同一个规则：
-
-```text
-https://<你的域名>/ak/<你的 API Key>/v1/responses
-```
+临时 trycloudflare 隧道只建议用于测试；如果需要流式输出，请使用正式 Tunnel token。
 
 ## 备份恢复
 
@@ -172,9 +184,3 @@ large_client_header_buffers 16 512k;
 如果 `/t/` 提示“重定向次数过多”，原因通常是旧路由里存在 `/t -> /t/`，而 GoTTY 自身又把路径规范化回 `/t`。当前配置已经改为原生 nginx 代理 `/t` 与 `/t/`，不会再读取旧 JSON 路由。
 
 `/filebrowser/` 出现同类重定向循环时也一样：当前配置参考 `jihuang` 的处理方式，`/filebrowser` 会直接代理到后端 `/filebrowser/`，避免外部 301 循环。
-
-如果魔搭平台提示 `Authorization`、`X-modelscope-*`、`X-studio-*` 等请求头已被占用，请不要使用这些头传 API Key；改用 `Codex-Authorization: Bearer <key>`。nginx 会只把转换后的标准 `Authorization` 传给 Codex2API。
-
-不方便改请求头的客户端可以改用路径形式：`https://<你的域名>/ak/<key>/v1`。
-
-Responses API 对应 `https://<你的域名>/ak/<key>/v1/responses`。

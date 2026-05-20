@@ -67,27 +67,37 @@ If GitHub sync is not configured, Codex2API starts immediately.
 
 Codex2API checks the client IP during first-time bootstrap. Because this image sits behind OpenResty, it defaults `BOOTSTRAP_ALLOWED_CIDR=0.0.0.0/0,::/0` so initialization can be completed through the public domain. After bootstrap, you can override it with a narrower IP/CIDR range.
 
-If the hosting platform reserves the standard `Authorization` header, send `Codex-Authorization` or `X-Codex-Authorization` instead. OpenResty rewrites it back to standard `Authorization` before proxying to Codex2API, and the custom header takes precedence over a platform-provided `Authorization`.
+## Cloudflare Tunnel
+
+The image installs `cloudflared` from Cloudflare's official apt repository. When you use Cloudflare Tunnel, traffic bypasses platform proxies that reserve `Authorization`, so clients can use the standard OpenAI-compatible settings:
+
+```text
+base_url = https://<your-domain>/v1
+api_key = <your API key>
+```
+
+Create a Tunnel in Cloudflare Zero Trust and point the Public Hostname service to:
+
+```text
+http://localhost:7860
+```
+
+Then run the container with a tunnel token. On startup, the container reads `CLOUDFLARE_TUNNEL_TOKEN`, performs initialization equivalent to `cloudflared service install "$CLOUDFLARE_TUNNEL_TOKEN"`, and lets supervisor manage the foreground tunnel process:
 
 ```bash
-curl https://<your-domain>/v1/models \
-  -H "Codex-Authorization: Bearer <your API key>"
+docker run -d \
+  -e CLOUDFLARE_TUNNEL_TOKEN="<cloudflare tunnel token>" \
+  --name codex2api-gateway \
+  codex2api-gateway:latest
 ```
 
-If a client cannot customize request headers and only supports an OpenAI-compatible `base_url`, put the API key in the `/ak/<key>/v1` path:
+For a temporary trycloudflare tunnel, set:
 
 ```text
-base_url = https://<your-domain>/ak/<your API key>/v1
-api_key = dummy
+CLOUDFLARE_QUICK_TUNNEL=1
 ```
 
-nginx rewrites `/ak/<key>/v1/chat/completions` to upstream `/v1/chat/completions` and injects `Authorization: Bearer <key>`. Access logs redact `/ak/<key>` as `/ak/<redacted>`.
-
-The Responses API uses the same rule:
-
-```text
-https://<your-domain>/ak/<your API key>/v1/responses
-```
+Quick trycloudflare tunnels are only recommended for testing. Use a named Tunnel token when you need streaming responses.
 
 ## Local Docker
 
@@ -128,9 +138,3 @@ Rebuild and restart the image. If the browser still fails, clear old cookies for
 If `/t/` reports too many redirects, an old route may still redirect `/t` to `/t/` while GoTTY normalizes back to `/t`. The current native nginx config proxies both `/t` and `/t/` directly and no longer reads JSON route rules.
 
 The same fix is applied to `/filebrowser/`: following the `jihuang` pattern, `/filebrowser` proxies directly to upstream `/filebrowser/` to avoid external 301 loops.
-
-If ModelScope reserves `Authorization`, `X-modelscope-*`, or `X-studio-*`, use `Codex-Authorization: Bearer <key>` for API calls. nginx forwards only the rewritten standard `Authorization` header to Codex2API.
-
-For clients that cannot change headers, use the path form: `https://<your-domain>/ak/<key>/v1`.
-
-The Responses API path is `https://<your-domain>/ak/<key>/v1/responses`.

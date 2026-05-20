@@ -106,6 +106,18 @@ RUN set -eux; \
     chown 1000:1000 /home/user/gotty; \
     rm -f /tmp/gotty.tar.gz
 
+# Install Cloudflare Tunnel client from the official Cloudflare apt repository.
+RUN set -eux; \
+    mkdir -p --mode=0755 /usr/share/keyrings; \
+    curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+      | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null; \
+    echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+      > /etc/apt/sources.list.d/cloudflared.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends cloudflared; \
+    rm -rf /var/lib/apt/lists/*; \
+    cloudflared --version
+
 RUN mkdir -p /home/user/logs /home/user/backups/codex2api /data/images && \
     chown -R 1000:1000 /home/user/logs /home/user/backups /data
 
@@ -124,6 +136,7 @@ COPY --chown=1000:1000 sync /home/user/sync
 
 RUN mkdir -p /home/user/scripts && chown -R 1000:1000 /home/user/scripts
 COPY --chown=1000:1000 scripts/run-codex2api.sh /home/user/scripts/run-codex2api.sh
+COPY --chown=1000:1000 scripts/run-cloudflared.sh /home/user/scripts/run-cloudflared.sh
 COPY --chown=1000:1000 scripts/backup-sqlite.sh /home/user/scripts/backup-sqlite.sh
 COPY --chown=1000:1000 scripts/restore-sqlite-backup.sh /home/user/scripts/restore-sqlite-backup.sh
 COPY --chown=1000:1000 scripts/wait-sync-ready.sh /home/user/scripts/wait-sync-ready.sh
