@@ -181,6 +181,6 @@ large_client_header_buffers 16 512k;
 
 重新构建并启动新镜像后生效。如果浏览器仍报错，清理该域名下的旧 Cookie 后再访问。
 
-如果 `/t/` 提示“重定向次数过多”，原因通常是旧路由里存在 `/t -> /t/`，而 GoTTY 自身又把路径规范化回 `/t`。当前配置已经改为原生 nginx 代理 `/t` 与 `/t/`，不会再读取旧 JSON 路由。
+如果 `/t/` 提示“重定向次数过多”，原因通常是 `/t/` 被转发成了上游 `/t`，而 GoTTY 又把已登录请求规范化回 `/t/`。当前配置会保留 `/t/` 的结尾斜杠转发给 GoTTY，不会再产生循环。
 
-`/filebrowser/` 出现同类重定向循环时也一样：当前配置参考 `jihuang` 的处理方式，`/filebrowser` 会直接代理到后端 `/filebrowser/`，避免外部 301 循环。
+`/filebrowser/` 出现同类重定向循环或 404 时，通常是 nginx 把路径改写到了 FileBrowser 无法匹配的地址。当前配置会让 `/filebrowser` 在 nginx 内部跳到 `/filebrowser/`，并把 `/filebrowser/` 之后的完整路径保留给 FileBrowser。

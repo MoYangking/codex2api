@@ -135,6 +135,6 @@ large_client_header_buffers 16 512k;
 
 Rebuild and restart the image. If the browser still fails, clear old cookies for the domain and try again.
 
-If `/t/` reports too many redirects, an old route may still redirect `/t` to `/t/` while GoTTY normalizes back to `/t`. The current native nginx config proxies both `/t` and `/t/` directly and no longer reads JSON route rules.
+If `/t/` reports too many redirects, nginx may be forwarding `/t/` to upstream `/t` while GoTTY normalizes authenticated requests back to `/t/`. The current config preserves the trailing slash when proxying `/t/` to GoTTY.
 
-The same fix is applied to `/filebrowser/`: following the `jihuang` pattern, `/filebrowser` proxies directly to upstream `/filebrowser/` to avoid external 301 loops.
+For `/filebrowser/` redirect loops or 404s, nginx may be rewriting the path into something FileBrowser cannot match. The current config redirects `/filebrowser` to `/filebrowser/` in nginx and preserves the full `/filebrowser/` path for FileBrowser.
