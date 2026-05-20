@@ -83,6 +83,12 @@ api_key = dummy
 
 nginx rewrites `/ak/<key>/v1/chat/completions` to upstream `/v1/chat/completions` and injects `Authorization: Bearer <key>`. Access logs redact `/ak/<key>` as `/ak/<redacted>`.
 
+The Responses API uses the same rule:
+
+```text
+https://<your-domain>/ak/<your API key>/v1/responses
+```
+
 ## Local Docker
 
 ```bash
@@ -126,3 +132,5 @@ The same fix is applied to `/filebrowser/`: following the `jihuang` pattern, `/f
 If ModelScope reserves `Authorization`, `X-modelscope-*`, or `X-studio-*`, use `Codex-Authorization: Bearer <key>` for API calls. nginx forwards only the rewritten standard `Authorization` header to Codex2API.
 
 For clients that cannot change headers, use the path form: `https://<your-domain>/ak/<key>/v1`.
+
+The Responses API path is `https://<your-domain>/ak/<key>/v1/responses`.

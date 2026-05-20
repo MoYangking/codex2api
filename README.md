@@ -136,6 +136,12 @@ api_key = dummy
 
 nginx 会把 `/ak/<key>/v1/chat/completions` 转发成后端的 `/v1/chat/completions`，并自动补上 `Authorization: Bearer <key>`。访问日志会把 `/ak/<key>` 脱敏成 `/ak/<redacted>`。
 
+Responses API 也走同一个规则：
+
+```text
+https://<你的域名>/ak/<你的 API Key>/v1/responses
+```
+
 ## 备份恢复
 
 手动触发一次备份：
@@ -170,3 +176,5 @@ large_client_header_buffers 16 512k;
 如果魔搭平台提示 `Authorization`、`X-modelscope-*`、`X-studio-*` 等请求头已被占用，请不要使用这些头传 API Key；改用 `Codex-Authorization: Bearer <key>`。nginx 会只把转换后的标准 `Authorization` 传给 Codex2API。
 
 不方便改请求头的客户端可以改用路径形式：`https://<你的域名>/ak/<key>/v1`。
+
+Responses API 对应 `https://<你的域名>/ak/<key>/v1/responses`。
